@@ -5,7 +5,9 @@ import { Icon, Col, Card, Row } from "antd";
 import Meta from "antd/lib/card/Meta";
 import ImageSlider from "../../utils/ImageSlider";
 import CheckBox from "./Sections/CheckBox";
-import { continents } from "./Sections/Datas";
+import { continents, price } from "./Sections/Datas";
+import RadioBox from "./Sections/RadioBox";
+import SearchFeature from "./Sections/SearchFeature";
 
 function LandingPage() {
   const [products, setProducts] = useState([]);
@@ -16,6 +18,7 @@ function LandingPage() {
     continents: [],
     price: [],
   });
+  const [SearchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     let body = {
@@ -58,21 +61,24 @@ function LandingPage() {
   const renderCards = products.map((item, idx) => {
     return (
       <Col lg={6} md={8} xs={24} key={idx}>
-        <Card
-          cover={
-            <ImageSlider images={item.images} />
-            // <img
-            //   style={{ width: '100%', maxHeight: '150px'}}
-            //   alt={"여행사진"}
-            //   src={`http://localhost:5000/${item.images[0]}`}
-            // />
-          }
-        >
+        <Card cover={<ImageSlider images={item.images} />}>
           <Meta title={item.title} description={`$${item.price}`} />
         </Card>
       </Col>
     );
   });
+
+  const handlePrice = (value) => {
+    const data = price;
+    let array = [];
+
+    for (let key in data) {
+      if (data[key]._id === parseInt(value, 10)) {
+        array = data[key].array;
+      }
+    }
+    return array;
+  };
 
   const handleFilters = (filters, category) => {
     const newFilters = { ...Filters };
@@ -81,10 +87,10 @@ function LandingPage() {
 
     console.log("filters", filters);
 
-    // if (category === "price") {
-    //     let priceValues = handlePrice(filters)
-    //     newFilters[category] = priceValues
-    // }
+    if (category === "price") {
+      let priceValues = handlePrice(filters);
+      newFilters[category] = priceValues;
+    }
     showFilteredResults(newFilters);
     setFilters(newFilters);
   };
@@ -100,6 +106,19 @@ function LandingPage() {
     setSkip(0);
   };
 
+  const updateSearchTerm = (newSearchTerm) => {
+    let body = {
+      skip: 0,
+      limit: Limit,
+      filters: Filters,
+      searchTerm: newSearchTerm,
+    };
+
+    setSkip(0);
+    setSearchTerm(newSearchTerm);
+    getProducts(body);
+  };
+
   return (
     <div style={{ width: "75%", margin: "3rem auto" }}>
       <div style={{ textAlign: "center" }}>
@@ -111,15 +130,33 @@ function LandingPage() {
 
       {/* filter */}
 
-      {/* Checkbox */}
-      <CheckBox
-        list={continents}
-        handleFilters={(filters) => handleFilters(filters, "continents")}
-      />
-
-      {/* RadioBox */}
+      <Row gutter={[16, 16]}>
+        <Col lg={12} xs={24}>
+          {/* Checkbox */}
+          <CheckBox
+            list={continents}
+            handleFilters={(filters) => handleFilters(filters, "continents")}
+          />
+        </Col>
+        <Col lg={12} xs={24}>
+          {/* RadioBox */}
+          <RadioBox
+            list={price}
+            handleFilters={(filters) => handleFilters(filters, "price")}
+          />
+        </Col>
+      </Row>
 
       {/* Search */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          margin: "1rem auto",
+        }}
+      >
+        <SearchFeature refreshFunction={updateSearchTerm} />
+      </div>
 
       {/* Cards */}
 
